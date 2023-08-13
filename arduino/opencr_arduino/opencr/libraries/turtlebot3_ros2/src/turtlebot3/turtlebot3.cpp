@@ -58,11 +58,25 @@ static const TB3ModelInfo waffle_with_manipulator_info = {
   0.220,
   true,
 };
+static const TB3ModelInfo eurobot_MAMUT_twin ={
+  "eurobotMAMUTtwin",
+  4,
+  0.033,
+  0.210,
+  0.105,
+  0.130,
+  false,
+};
+static const TB3ModelInfo eurobot_MAMUT_Bb ={
+  "eurobotMAMUTBig",
+  5, 
+  0.033,
+  0.264,
+  0.132,
+  0.162,
+  false,
+};
 
-
-/*******************************************************************************
-* Declaration for motors
-*******************************************************************************/
 static Turtlebot3MotorDriver motor_driver;
 static OpenManipulatorDriver manipulator_driver(motor_driver.getDxl());
 
@@ -333,7 +347,13 @@ void TurtleBot3Core::begin(const char* model_name)
   }else if(strcmp(model_name, "Waffle_OpenManipulator") == 0){
     p_tb3_model_info = &waffle_with_manipulator_info;
     model_motor_rpm = 77;
-  }else{
+  }else if(strcmp(model_name, "eurobotMAMUTtwin")==0){
+    p_tb3_model_info = &eurobot_MAMUT_twin;
+    model_motor_rpm = 77;
+  }else if(strcmp(model_name,"eurobotMAMUTBig")==0){
+    p_tb3_model_info = &eurobot_MAMUT_Bb;
+    model_motor_rpm = 77;
+  } else{
     p_tb3_model_info = &burger_info;
     model_motor_rpm = 61;
   }
