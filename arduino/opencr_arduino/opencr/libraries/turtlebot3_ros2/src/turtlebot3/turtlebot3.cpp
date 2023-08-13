@@ -338,25 +338,32 @@ void TurtleBot3Core::begin(const char* model_name)
 {
   uint16_t model_motor_rpm;
 
-  if(strcmp(model_name, "Burger") == 0 || strcmp(model_name, "burger") == 0){
-    p_tb3_model_info = &burger_info;
-    model_motor_rpm = 61;
-  }else if(strcmp(model_name, "Waffle") == 0 || strcmp(model_name, "waffle") == 0){
-    p_tb3_model_info = &waffle_info;
-    model_motor_rpm = 77;
-  }else if(strcmp(model_name, "Waffle_OpenManipulator") == 0){
-    p_tb3_model_info = &waffle_with_manipulator_info;
-    model_motor_rpm = 77;
-  }else if(strcmp(model_name, "eurobotMAMUTtwin")==0){
-    p_tb3_model_info = &eurobot_MAMUT_twin;
-    model_motor_rpm = 77;
-  }else if(strcmp(model_name,"eurobotMAMUTBig")==0){
-    p_tb3_model_info = &eurobot_MAMUT_Bb;
-    model_motor_rpm = 77;
-  } else{
-    p_tb3_model_info = &burger_info;
-    model_motor_rpm = 61;
-  }
+  switch (model_name) {
+    case "Burger":
+      p_tb3_model_info = &burger_info;
+      model_motor_rpm = 61;
+      break;
+    case "Waffle":
+      p_tb3_model_info = &waffle_info;
+      model_motor_rpm = 77;
+      break;
+    case "Waffle_OpenManipulator":
+      p_tb3_model_info = &waffle_with_manipulator_info;
+      model_motor_rpm = 77;
+      break;
+    case "eurobotMAMUTtwin":
+      p_tb3_model_info = &eurobot_MAMUT_twin;
+      model_motor_rpm = 77;
+      break;
+    case "eurobotMAMUTBig":
+      p_tb3_model_info = &eurobot_MAMUT_Bb;
+      model_motor_rpm = 77;
+      break;
+    default:
+      p_tb3_model_info = &burger_info;
+      model_motor_rpm = 61;
+}
+
 
   max_linear_velocity = p_tb3_model_info->wheel_radius*2*PI*model_motor_rpm/60;
   min_linear_velocity = -max_linear_velocity;
@@ -562,9 +569,7 @@ void TurtleBot3Core::begin(const char* model_name)
   } 
   control_items.is_connect_motors = get_connection_state_with_motors();  
 
-  if (p_tb3_model_info->has_manipulator == true) {
-    // Check connection state with joints.
-    if(manipulator_driver.is_connected() == true){
+  if (p_tb3_model_info->has_manipulator == true && manipulator_driver.is_connected() == true){
       manipulator_driver.set_torque(true);    
       control_items.is_connect_manipulator = true;
       set_connection_state_with_joints(true);
@@ -575,7 +580,6 @@ void TurtleBot3Core::begin(const char* model_name)
       DEBUG_PRINTLN("Can't communicate with the joint!");
       DEBUG_PRINTLN("  Please check the connection to the joint motor and the power supply.");
       DEBUG_PRINTLN();
-    } 
   }
 
   // Init IMU 
@@ -632,8 +636,7 @@ void TurtleBot3Core::run()
   dxl_slave.processPacket();
 
   /* For controlling DYNAMIXEL motors (Wheels) */  
-  if (millis()-pre_time_to_control_motor >= INTERVAL_MS_TO_CONTROL_MOTOR)
-  {
+  if (millis()-pre_time_to_control_motor >= INTERVAL_MS_TO_CONTROL_MOTOR){
     pre_time_to_control_motor = millis();
     if(get_connection_state_with_ros2_node() == false){
       memset(goal_velocity_from_cmd, 0, sizeof(goal_velocity_from_cmd));
@@ -650,8 +653,7 @@ void TurtleBot3Core::run()
 * Function definition for updating velocity values 
 * to be used for control of DYNAMIXEL(motors).
 *******************************************************************************/
-void update_goal_velocity_from_3values(void)
-{
+void update_goal_velocity_from_3values(void){
   goal_velocity[VelocityType::LINEAR]  = goal_velocity_from_button[VelocityType::LINEAR]  + goal_velocity_from_cmd[VelocityType::LINEAR]  + goal_velocity_from_rc100[VelocityType::LINEAR];
   goal_velocity[VelocityType::ANGULAR] = goal_velocity_from_button[VelocityType::ANGULAR] + goal_velocity_from_cmd[VelocityType::ANGULAR] + goal_velocity_from_rc100[VelocityType::ANGULAR];
 
@@ -662,13 +664,11 @@ void update_goal_velocity_from_3values(void)
 /*******************************************************************************
 * Function definition for updating control items in TB3.
 *******************************************************************************/
-float map_float(float x, float in_min, float in_max, float out_min, float out_max)
-{
+float map_float(float x, float in_min, float in_max, float out_min, float out_max){
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
-void update_times(uint32_t interval_ms)
-{
+void update_times(uint32_t interval_ms){
   static uint32_t pre_time = 0;
 
   if(millis() - pre_time >= interval_ms){
@@ -777,8 +777,7 @@ void update_motor_status(uint32_t interval_ms)
   }  
 }
 
-void update_joint_status(uint32_t interval_ms)
-{
+void update_joint_status(uint32_t interval_ms){
   static uint32_t pre_time;
 
   if(millis() - pre_time >= interval_ms){
@@ -798,22 +797,17 @@ void update_joint_status(uint32_t interval_ms)
 /*******************************************************************************
 * Callback function definition to be used in communication with the ROS2 node.
 *******************************************************************************/
-static void dxl_slave_write_callback_func(uint16_t item_addr, uint8_t &dxl_err_code, void* arg)
-{
+static void dxl_slave_write_callback_func(uint16_t item_addr, uint8_t &dxl_err_code, void* arg){
   (void)arg;
 
-  switch(item_addr)
-  {
+  switch(item_addr){
     case ADDR_MODEL_INFORM:
       control_items.model_inform = p_tb3_model_info->model_info;
       dxl_err_code = DXL_ERR_ACCESS;
       break;
 
     case ADDR_DEBUG_MODE:
-      if (control_items.debug_mode == true)
-        DEBUG_PRINTLN("Debug Mode : Enabled");
-      else
-        DEBUG_PRINTLN("Debug Mode : Disabled");
+      DEBUG_PRINTLN((control_items.debug_mode == true)?"Debug Mode : Enabled":"Debug Mode : Disabled");
       break;
 
     case ADDR_SOUND:
@@ -950,18 +944,15 @@ static void dxl_slave_write_callback_func(uint16_t item_addr, uint8_t &dxl_err_c
 *******************************************************************************/
 static bool connection_state_with_ros2_node = false;
 
-static bool get_connection_state_with_ros2_node()
-{
+static bool get_connection_state_with_ros2_node(){
   return connection_state_with_ros2_node;
 }
 
-static void set_connection_state_with_ros2_node(bool is_connected)
-{
+static void set_connection_state_with_ros2_node(bool is_connected){
   connection_state_with_ros2_node = is_connected;
 }
 
-void update_connection_state_with_ros2_node()
-{
+void update_connection_state_with_ros2_node(){
   static uint32_t pre_time;
   static uint8_t pre_data;
   static bool pre_state;
@@ -993,13 +984,11 @@ void update_connection_state_with_ros2_node()
 *******************************************************************************/
 static bool is_connected_motors = false;
 
-static bool get_connection_state_with_motors()
-{
+static bool get_connection_state_with_motors(){
   return is_connected_motors;
 }
 
-static void set_connection_state_with_motors(bool is_connected)
-{
+static void set_connection_state_with_motors(bool is_connected){
   is_connected_motors = is_connected;
 }
 
@@ -1008,13 +997,11 @@ static void set_connection_state_with_motors(bool is_connected)
 *******************************************************************************/
 static bool is_connected_joints = false;
 
-static bool get_connection_state_with_joints()
-{
+static bool get_connection_state_with_joints(){
   return is_connected_joints;
 }
 
-static void set_connection_state_with_joints(bool is_connected)
-{
+static void set_connection_state_with_joints(bool is_connected){
   is_connected_joints = is_connected;
 }
 
@@ -1025,8 +1012,7 @@ const float TICK2RAD = 0.001533981; // 0.087890625[deg] * 3.14159265359 / 180 = 
 const float TEST_DISTANCE = 0.300; // meter
 const float TEST_RADIAN = 3.14; // 180 degree
 
-void test_motors_with_buttons(uint8_t buttons)
-{
+void test_motors_with_buttons(uint8_t buttons){
   static bool move[2] = {false, false};
   static int32_t saved_tick[2] = {0, 0};
   static double diff_encoder = 0.0;
@@ -1037,43 +1023,31 @@ void test_motors_with_buttons(uint8_t buttons)
     motor_driver.read_present_position(current_tick[MortorLocation::LEFT], current_tick[MortorLocation::RIGHT]);
   }
 
-  if (buttons & (1<<0))  
-  {
+  if (buttons & (1<<0))  {
     move[VelocityType::LINEAR] = true;
     saved_tick[MortorLocation::RIGHT] = current_tick[MortorLocation::RIGHT];
 
     diff_encoder = TEST_DISTANCE / (0.207 / 4096); // (Circumference of Wheel) / (The number of tick per revolution)
   }
-  else if (buttons & (1<<1))
-  {
+  else if (buttons & (1<<1)){
     move[VelocityType::ANGULAR] = true;
     saved_tick[MortorLocation::RIGHT] = current_tick[MortorLocation::RIGHT];
 
     diff_encoder = (TEST_RADIAN * p_tb3_model_info->turning_radius) / (0.207 / 4096);
   }
 
-  if (move[VelocityType::LINEAR])
-  {    
-    if (abs(saved_tick[MortorLocation::RIGHT] - current_tick[MortorLocation::RIGHT]) <= diff_encoder)
-    {
+  if (move[VelocityType::LINEAR] && abs(saved_tick[MortorLocation::RIGHT] - current_tick[MortorLocation::RIGHT]) <= diff_encoder){
       goal_velocity_from_button[VelocityType::LINEAR]  = 0.05;
     }
-    else
-    {
+    else{
       goal_velocity_from_button[VelocityType::LINEAR]  = 0.0;
       move[VelocityType::LINEAR] = false;
-    }
   }
-  else if (move[VelocityType::ANGULAR])
-  {   
-    if (abs(saved_tick[MortorLocation::RIGHT] - current_tick[MortorLocation::RIGHT]) <= diff_encoder)
-    {
+  else if (move[VelocityType::ANGULAR] && abs(saved_tick[MortorLocation::RIGHT] - current_tick[MortorLocation::RIGHT]) <= diff_encoder){
       goal_velocity_from_button[VelocityType::ANGULAR]= -0.7;
     }
-    else
-    {
+    else{
       goal_velocity_from_button[VelocityType::ANGULAR]  = 0.0;
       move[VelocityType::ANGULAR] = false;
-    }
   }
 }

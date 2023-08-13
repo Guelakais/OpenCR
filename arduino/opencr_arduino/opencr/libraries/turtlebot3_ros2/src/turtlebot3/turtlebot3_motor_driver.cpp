@@ -42,18 +42,14 @@ Dynamixel2Arduino dxl(Serial3, OPENCR_DXL_DIR_PIN);
 Turtlebot3MotorDriver::Turtlebot3MotorDriver()
 : left_wheel_id_(DXL_MOTOR_ID_LEFT),
   right_wheel_id_(DXL_MOTOR_ID_RIGHT),
-  torque_(false)
-{
-}
+  torque_(false){}
 
-Turtlebot3MotorDriver::~Turtlebot3MotorDriver()
-{
+Turtlebot3MotorDriver::~Turtlebot3MotorDriver(){
   close();
   digitalWrite(BDPIN_DXL_PWR_EN, LOW);
-}
+  }
 
-bool Turtlebot3MotorDriver::init(void)
-{
+bool Turtlebot3MotorDriver::init(void){
   pinMode(BDPIN_DXL_PWR_EN, OUTPUT);
   digitalWrite(BDPIN_DXL_PWR_EN, HIGH);
   drv_dxl_init();
@@ -77,18 +73,15 @@ bool Turtlebot3MotorDriver::init(void)
   return true;
 }
 
-Dynamixel2Arduino& Turtlebot3MotorDriver::getDxl()
-{
+Dynamixel2Arduino& Turtlebot3MotorDriver::getDxl(){
   return dxl;
 }
 
-bool Turtlebot3MotorDriver::is_connected()
-{
+bool Turtlebot3MotorDriver::is_connected(){
   return (dxl.ping(DXL_MOTOR_ID_LEFT) == true && dxl.ping(DXL_MOTOR_ID_RIGHT) == true);
 }
 
-bool Turtlebot3MotorDriver::set_torque(bool onoff)
-{
+bool Turtlebot3MotorDriver::set_torque(bool onoff){
   bool ret = false;
 
   sync_write_param.addr = 64;
@@ -104,8 +97,7 @@ bool Turtlebot3MotorDriver::set_torque(bool onoff)
   return ret;
 }
 
-bool Turtlebot3MotorDriver::get_torque()
-{
+bool Turtlebot3MotorDriver::get_torque(){
   if(dxl.readControlTableItem(TORQUE_ENABLE, left_wheel_id_) == true
     && dxl.readControlTableItem(TORQUE_ENABLE, right_wheel_id_) == true){
     torque_ = true;
@@ -116,14 +108,12 @@ bool Turtlebot3MotorDriver::get_torque()
   return torque_;
 }
 
-void Turtlebot3MotorDriver::close(void)
-{
+void Turtlebot3MotorDriver::close(void){
   // Disable Dynamixel Torque
   set_torque(false);
 }
 
-bool Turtlebot3MotorDriver::read_present_position(int32_t &left_value, int32_t &right_value)
-{
+bool Turtlebot3MotorDriver::read_present_position(int32_t &left_value, int32_t &right_value){
   bool ret = false;
 
   sync_read_param.addr = 132;
@@ -138,8 +128,7 @@ bool Turtlebot3MotorDriver::read_present_position(int32_t &left_value, int32_t &
   return ret;
 }
 
-bool Turtlebot3MotorDriver::read_present_velocity(int32_t &left_value, int32_t &right_value)
-{
+bool Turtlebot3MotorDriver::read_present_velocity(int32_t &left_value, int32_t &right_value){
   bool ret = false;
 
   sync_read_param.addr = 128;
@@ -154,8 +143,7 @@ bool Turtlebot3MotorDriver::read_present_velocity(int32_t &left_value, int32_t &
   return ret;
 }
 
-bool Turtlebot3MotorDriver::read_present_current(int16_t &left_value, int16_t &right_value)
-{
+bool Turtlebot3MotorDriver::read_present_current(int16_t &left_value, int16_t &right_value){
   bool ret = false;
 
   sync_read_param.addr = 126;
@@ -170,8 +158,7 @@ bool Turtlebot3MotorDriver::read_present_current(int16_t &left_value, int16_t &r
   return ret;
 }
 
-bool Turtlebot3MotorDriver::read_profile_acceleration(uint32_t &left_value, uint32_t &right_value)
-{
+bool Turtlebot3MotorDriver::read_profile_acceleration(uint32_t &left_value, uint32_t &right_value){
   bool ret = false;
 
   sync_read_param.addr = 108;
@@ -187,8 +174,7 @@ bool Turtlebot3MotorDriver::read_profile_acceleration(uint32_t &left_value, uint
 }
 
 
-bool Turtlebot3MotorDriver::write_velocity(int32_t left_value, int32_t right_value)
-{
+bool Turtlebot3MotorDriver::write_velocity(int32_t left_value, int32_t right_value){
   bool ret = false;
 
   sync_write_param.addr = 104;
@@ -196,15 +182,11 @@ bool Turtlebot3MotorDriver::write_velocity(int32_t left_value, int32_t right_val
   memcpy(sync_write_param.xel[LEFT].data, &left_value, sync_write_param.length);
   memcpy(sync_write_param.xel[RIGHT].data, &right_value, sync_write_param.length);
 
-  if(dxl.syncWrite(sync_write_param)){
-    ret = true;
-  }
-
+  ret = (dxl.syncWrite(sync_write_param))?true:false;
   return ret;
 }
 
-bool Turtlebot3MotorDriver::write_profile_acceleration(uint32_t left_value, uint32_t right_value)
-{
+bool Turtlebot3MotorDriver::write_profile_acceleration(uint32_t left_value, uint32_t right_value){
   bool ret = false;
 
   sync_write_param.addr = 108;
@@ -212,15 +194,11 @@ bool Turtlebot3MotorDriver::write_profile_acceleration(uint32_t left_value, uint
   memcpy(sync_write_param.xel[LEFT].data, &left_value, sync_write_param.length);
   memcpy(sync_write_param.xel[RIGHT].data, &right_value, sync_write_param.length);
 
-  if(dxl.syncWrite(sync_write_param)){
-    ret = true;
-  }
-
+  ret =(dxl.syncWrite(sync_write_param)) ? true : false;
   return ret;
 }
 
-bool Turtlebot3MotorDriver::control_motors(const float wheel_separation, float linear_value, float angular_value)
-{
+bool Turtlebot3MotorDriver::control_motors(const float wheel_separation, float linear_value, float angular_value){
   bool dxl_comm_result = false;
   
   float wheel_velocity[MortorLocation::MOTOR_NUM_MAX];
@@ -234,8 +212,6 @@ bool Turtlebot3MotorDriver::control_motors(const float wheel_separation, float l
   wheel_velocity[RIGHT] = constrain(wheel_velocity[RIGHT] * VELOCITY_CONSTANT_VALUE, -LIMIT_X_MAX_VELOCITY, LIMIT_X_MAX_VELOCITY);
 
   dxl_comm_result = write_velocity((int32_t)wheel_velocity[LEFT], (int32_t)wheel_velocity[RIGHT]);
-  if (dxl_comm_result == false)
-    return false;
 
-  return true;
+  return (dxl_comm_result == false)? false:true;
 }

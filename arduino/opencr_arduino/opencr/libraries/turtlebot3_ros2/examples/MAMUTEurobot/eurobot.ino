@@ -1,7 +1,7 @@
 #include <TurtleBot3_ROS2.h>
 void setup()
 {
-  TurtleBot3Core::begin("Waffle_OpenManipulator");
+  TurtleBot3Core::begin("eurobotMAMUTtwin");
 }
 void loop()
 {
