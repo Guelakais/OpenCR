@@ -16,15 +16,12 @@
 
 #include "../../include/turtlebot3/turtlebot3_sensor.h"
 
-Turtlebot3Sensor::Turtlebot3Sensor()
-{
-}
+Turtlebot3Sensor::Turtlebot3Sensor(){}
 
 Turtlebot3Sensor::~Turtlebot3Sensor()
 {}
 
-bool Turtlebot3Sensor::init(void)
-{
+bool Turtlebot3Sensor::init(void){
   bool ret = false;
 
   initBumper();
@@ -36,22 +33,18 @@ bool Turtlebot3Sensor::init(void)
 
   if (get_error_code == 0x00)
     ret = true;
-
   return ret;
 }
 
-void Turtlebot3Sensor::initIMU(void)
-{
+void Turtlebot3Sensor::initIMU(void){
   imu_.begin();
 }
 
-void Turtlebot3Sensor::updateIMU(void)
-{
+void Turtlebot3Sensor::updateIMU(void){
   imu_.update();
 }
 
-void Turtlebot3Sensor::calibrationGyro()
-{
+void Turtlebot3Sensor::calibrationGyro(){
   uint32_t pre_time;
   uint32_t t_time;
 
@@ -62,12 +55,9 @@ void Turtlebot3Sensor::calibrationGyro()
   t_time   = millis();
   pre_time = millis();
 
-  while(!imu_.SEN.gyro_cali_get_done())
-  {
+  while(!imu_.SEN.gyro_cali_get_done()){
     imu_.update();
-
-    if (millis()-pre_time > 5000)
-    {
+    if (millis()-pre_time > 5000){
       break;
     }
     if (millis()-t_time > 100)
@@ -78,8 +68,7 @@ void Turtlebot3Sensor::calibrationGyro()
   }
 }
 
-float* Turtlebot3Sensor::getImuAngularVelocity(void)
-{
+float* Turtlebot3Sensor::getImuAngularVelocity(void){
   static float angular_vel[3];
 
   angular_vel[0] = imu_.SEN.gyroADC[0] * GYRO_FACTOR;
@@ -89,8 +78,7 @@ float* Turtlebot3Sensor::getImuAngularVelocity(void)
   return angular_vel;
 }
 
-float* Turtlebot3Sensor::getImuLinearAcc(void)
-{
+float* Turtlebot3Sensor::getImuLinearAcc(void){
   static float linear_acc[3];
 
   linear_acc[0] = imu_.SEN.accADC[0] * ACCEL_FACTOR;
@@ -100,8 +88,7 @@ float* Turtlebot3Sensor::getImuLinearAcc(void)
   return linear_acc;
 }
 
-float* Turtlebot3Sensor::getImuMagnetic(void)
-{
+float* Turtlebot3Sensor::getImuMagnetic(void){
   static float magnetic[3];
 
   magnetic[0] = imu_.SEN.magADC[0] * MAG_FACTOR;
@@ -111,8 +98,7 @@ float* Turtlebot3Sensor::getImuMagnetic(void)
   return magnetic;
 }
 
-float* Turtlebot3Sensor::getOrientation(void)
-{
+float* Turtlebot3Sensor::getOrientation(void){
   static float orientation[4];
 
   orientation[0] = imu_.quat[0];
@@ -123,17 +109,11 @@ float* Turtlebot3Sensor::getOrientation(void)
   return orientation;
 }
 
-float Turtlebot3Sensor::checkVoltage(void)
-{
-  float vol_value;
-  
-  vol_value = getPowerInVoltage();
-
-  return vol_value;
+float Turtlebot3Sensor::checkVoltage(void){
+  return getPowerInVoltage();
 }
 
-uint8_t Turtlebot3Sensor::checkPushButton(void)
-{
+uint8_t Turtlebot3Sensor::checkPushButton(void){
   return getPushButton();
 }
 
@@ -145,12 +125,7 @@ void Turtlebot3Sensor::onMelody()
 
   if(is_melody_play_complete_ == false){
     if(pre_note_number != current_note_number){
-      // to calculate the note duration, take one second
-      // divided by the note type.
-      //e.g. quarter note = 1000 / 4, eighth note = 1000/8, etc.
-      note_duration = 1000/melody_duration_[current_note_number];    
-      // to distinguish the notes, set a minimum time between them.
-      // the note's duration + 30% seems to work well:
+      note_duration = 1000/melody_duration_[current_note_number];
       pause_time_ms_between_notes = note_duration * 1.30;
 
       tone(BDPIN_BUZZER, melody_note_[current_note_number], note_duration);
@@ -182,7 +157,7 @@ void Turtlebot3Sensor::makeMelody(uint8_t index)
   const uint16_t NOTE_A4 = 440;
   const uint16_t NOTE_B4 = 494;
   const uint16_t NOTE_C5 = 523;
-  //const uint16_t NOTE_C6 = 1047;
+  const uint16_t NOTE_C6 = 1047;
 
   const uint8_t OFF         = 0;
   const uint8_t ON          = 1;
@@ -246,14 +221,12 @@ void Turtlebot3Sensor::makeMelody(uint8_t index)
   is_melody_play_complete_ = false;
 }
 
-void Turtlebot3Sensor::initBumper(void)
-{
+void Turtlebot3Sensor::initBumper(void){
   ollo_.begin(3, TOUCH_SENSOR);
   ollo_.begin(4, TOUCH_SENSOR);
 }
 
-uint8_t Turtlebot3Sensor::checkPushBumper(void)
-{
+uint8_t Turtlebot3Sensor::checkPushBumper(void){
   uint8_t push_state = 0;
 
   if      (ollo_.read(3, TOUCH_SENSOR) == HIGH) push_state = 2;
@@ -317,8 +290,7 @@ void Turtlebot3Sensor::updateSonar(uint32_t t)
     }
   }
 
-  if (get_duration == TRUE)
-  {
+  if (get_duration == TRUE){
     duration = pulseIn(sonar_pin_.echo, HIGH);
     distance = ((float)(340 * duration) / 10000) / 2;
 
@@ -329,8 +301,7 @@ void Turtlebot3Sensor::updateSonar(uint32_t t)
   sonar_data_ = distance;
 }
 
-float Turtlebot3Sensor::getSonarData(void)
-{
+float Turtlebot3Sensor::getSonarData(void){
   float distance = 0.0;
 
   distance = sonar_data_;
